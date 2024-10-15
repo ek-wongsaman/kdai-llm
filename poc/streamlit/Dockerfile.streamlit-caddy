@@ -1,0 +1,34 @@
+FROM python:3.12.7-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    software-properties-common \
+    git \
+    debian-keyring \
+    debian-archive-keyring \
+    apt-transport-https \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Caddy
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+RUN apt-get update && apt-get install -y caddy
+
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
+
+COPY . .
+
+# Create a Caddyfile
+RUN echo "localhost {\n  reverse_proxy localhost:8501\n}" > Caddyfile
+
+EXPOSE 80 443
+
+HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
+
+# Run Caddy and Streamlit
+#CMD caddy run --config Caddyfile & streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+CMD caddy run --config Caddyfile & streamlit run st-infer-poc.py --server.port=8501 --server.address=0.0.0.0

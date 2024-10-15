@@ -1,0 +1,20 @@
+def query_openthaigpt(question, context):
+    formatted_prompt = f'''# Few-shot examples
+Example 1:
+this is sample for prompt.
+
+# RAG component
+Retrieved information:
+{context}
+
+# Actual question
+Question: {question}
+
+Please answer the question with Thai language using the information from the examples and the retrieved information above. Focus on troubleshooting end-user devices in FTTX projects. Provide a clear, step-by-step answer, prioritized in order of importance. Include a brief explanation for each step. If the provided information is insufficient to answer the question completely, state "The available information is not sufficient to fully answer this question" and suggest general troubleshooting steps.
+
+Answer:'''
+
+    response = ollama.generate(model='llama3.2:latest', prompt=formatted_prompt)
+    return response['response']
+
+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
